@@ -20,21 +20,16 @@
   ],
   "rewrites": [
     {
-      "source": "/api/campaigns/:path*",
-      "destination": "/api/campaigns/:path*"
+      "source": "/api/:path*",
+      "destination": "/api/api/:path*"
     },
     {
-      "source": "/api/pipl/:path*",
+      "source": "/pipl/:path*",
       "destination": "/api/pipl/:path*"
     },
     {
-      "source": "/api/instantly/:path*",
+      "source": "/instantly/:path*",
       "destination": "/api/instantly/:path*"
     }
-  ],
-  "functions": {
-    "api/**/*": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  }
+  ]
 } 

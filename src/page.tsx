@@ -121,86 +121,119 @@ export default function CampaignDashboard() {
     setError(null);
 
     try {
-      const response = sequencer === 'smartlead' 
-        ? await fetch(`/api/campaigns?api_key=${apiKey}`)
-        : await fetch(`/api/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`);
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
-
       if (sequencer === 'smartlead') {
-        const campaignsData = await response.json();
-        
-        const campaignsWithStats = (await Promise.all(
-          campaignsData.map(async (campaign: { id: string; name?: string }) => {
-            const statsUrl = `/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
-            const statsResponse = await fetch(statsUrl);
-            const stats: SmartleadResponse = await statsResponse.json();
-            
-            if (!stats.unique_sent_count) return null;
-            
-            // Ensure numbers are properly parsed
-            const uniqueSentCount = parseInt(stats.unique_sent_count.toString(), 10);
-            const replyCount = parseInt(stats.reply_count.toString(), 10);
-            const interestedCount = parseInt(stats.campaign_lead_stats?.interested?.toString() || '0', 10);
+        try {
+          const response = await fetch(`/api/campaigns?api_key=${apiKey}`);
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${await response.text()}`);
+          }
+          
+          const campaignsData = await response.json();
+          if (!Array.isArray(campaignsData)) {
+            throw new Error('Invalid response format from Smartlead API');
+          }
+          
+          const campaignsWithStats = await Promise.all(
+            campaignsData.map(async (campaign: { id: string; name?: string }) => {
+              try {
+                const statsResponse = await fetch(`/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`);
+                if (!statsResponse.ok) {
+                  console.error(`Failed to fetch stats for campaign ${campaign.id}`);
+                  return null;
+                }
+                
+                const stats: SmartleadResponse = await statsResponse.json();
+                if (!stats.unique_sent_count) return null;
+                
+                // Ensure numbers are properly parsed
+                const uniqueSentCount = parseInt(stats.unique_sent_count.toString(), 10);
+                const replyCount = parseInt(stats.reply_count.toString(), 10);
+                const interestedCount = parseInt(stats.campaign_lead_stats?.interested?.toString() || '0', 10);
 
-            const replyRate = (replyCount / uniqueSentCount) * 100;
-            const positiveRate = stats.campaign_lead_stats ? 
-              (interestedCount / replyCount) * 100 : 0;
+                const replyRate = (replyCount / uniqueSentCount) * 100;
+                const positiveRate = stats.campaign_lead_stats ? 
+                  (interestedCount / replyCount) * 100 : 0;
 
-            const campaignData: Campaign = {
-              id: campaign.id,
-              name: stats.name,
-              replyRate,
-              positiveRate,
-              stats: {
-                prospectsEmailed: uniqueSentCount,
-                replies: replyCount,
-                positiveReplies: interestedCount,
-                name: stats.name,
-                id: campaign.id
+                const campaignData: Campaign = {
+                  id: campaign.id,
+                  name: stats.name,
+                  replyRate,
+                  positiveRate,
+                  stats: {
+                    prospectsEmailed: uniqueSentCount,
+                    replies: replyCount,
+                    positiveReplies: interestedCount,
+                    name: stats.name,
+                    id: campaign.id
+                  }
+                };
+
+                return isValidCampaign(campaignData) ? campaignData : null;
+              } catch (error) {
+                console.error(`Error fetching stats for campaign ${campaign.id}:`, error);
+                return null;
               }
-            };
+            })
+          );
 
-            return isValidCampaign(campaignData) ? campaignData : null;
-          })
-        )).filter((campaign): campaign is Campaign => campaign !== null);
+          const validCampaigns = campaignsWithStats.filter((campaign): campaign is Campaign => 
+            campaign !== null && isValidCampaign(campaign)
+          );
 
-        setCampaigns(campaignsWithStats);
-        setStep('select');
+          setCampaigns(validCampaigns);
+          setStep('select');
+        } catch (error) {
+          console.error('API Error:', error);
+          setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
+        }
       } else if (sequencer === 'pipl') {
-        const campaignsData: PiplResponse[] = await response.json();
-        
-        const campaignsWithStats = campaignsData
-          .map((campaign: PiplResponse) => {
-            if (!campaign.lead_contacted_count) return null;
+        try {
+          const response = await fetch(
+            `/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+          );
+          
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${await response.text()}`);
+          }
 
-            const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
-            const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
-            const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
+          const campaignsData: PiplResponse[] = await response.json();
+          if (!Array.isArray(campaignsData)) {
+            throw new Error('Invalid response format from Pipl API');
+          }
 
-            const campaignData: Campaign = {
-              id: campaign._id,
-              name: campaign.camp_name,
-              replyRate,
-              positiveRate,
-              stats: {
-                prospectsEmailed: campaign.lead_contacted_count,
-                replies: campaign.replied_count,
-                positiveReplies: campaign.positive_reply_count,
-                pipelineValue,
+          const campaignsWithStats = campaignsData
+            .map((campaign: PiplResponse) => {
+              if (!campaign.lead_contacted_count) return null;
+
+              const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
+              const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
+              const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
+
+              const campaignData: Campaign = {
+                id: campaign._id,
                 name: campaign.camp_name,
-                id: campaign._id
-              }
-            };
+                replyRate,
+                positiveRate,
+                stats: {
+                  prospectsEmailed: campaign.lead_contacted_count,
+                  replies: campaign.replied_count,
+                  positiveReplies: campaign.positive_reply_count,
+                  pipelineValue,
+                  name: campaign.camp_name,
+                  id: campaign._id
+                }
+              };
 
-            return isValidCampaign(campaignData) ? campaignData : null;
-          })
-          .filter((campaign): campaign is Campaign => campaign !== null);
+              return isValidCampaign(campaignData) ? campaignData : null;
+            })
+            .filter((campaign): campaign is Campaign => campaign !== null);
 
-        setCampaigns(campaignsWithStats);
-        setStep('select');
+          setCampaigns(campaignsWithStats);
+          setStep('select');
+        } catch (error) {
+          console.error('API Error:', error);
+          setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
+        }
       } else if (sequencer === 'instantly') {
         const campaignsUrl = `/instantly/api/v1/analytics/campaign/summary?api_key=${apiKey}`;
         const response = await fetch(campaignsUrl);
