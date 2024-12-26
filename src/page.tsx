@@ -192,16 +192,19 @@ export default function CampaignDashboard() {
             `/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
           );
           
+          const data = await response.json();
+          
           if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${await response.text()}`);
+            throw new Error(data.error || `Error ${response.status}: ${JSON.stringify(data)}`);
           }
 
-          const campaignsData: PiplResponse[] = await response.json();
-          if (!Array.isArray(campaignsData)) {
+          if (!Array.isArray(data)) {
+            console.error('Invalid Pipl response:', data);
             throw new Error('Invalid response format from Pipl API');
           }
 
-          const campaignsWithStats = campaignsData
+          const campaignsWithStats = data
+            .filter(campaign => campaign && typeof campaign === 'object')
             .map((campaign: PiplResponse) => {
               if (!campaign.lead_contacted_count) return null;
 
@@ -231,7 +234,7 @@ export default function CampaignDashboard() {
           setCampaigns(campaignsWithStats);
           setStep('select');
         } catch (error) {
-          console.error('API Error:', error);
+          console.error('Pipl API Error:', error);
           setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
         }
       } else if (sequencer === 'instantly') {
