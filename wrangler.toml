@@ -5,10 +5,16 @@ compatibility_date = "2024-01-01"
 command = "npm run build"
 output_dir = "dist"
 
+[site]
+bucket = "./dist"
+
 [env.production]
 vars = { SMARTLEAD_API_URL = "https://server.smartlead.ai", PIPL_API_URL = "https://api.pipl.ai", INSTANTLY_API_URL = "https://api.instantly.ai" }
 
-[[redirects]]
-from = "/verify/*"
-to = "/index.html"
-status = 200 
+[[routes]]
+pattern = "/verify"
+custom_domain = true
+
+[[routes]]
+pattern = "/verify/*"
+custom_domain = true 
