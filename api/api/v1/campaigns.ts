@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+export const config = {
+  runtime: 'edge',
+};
+
 const handler = async (req: VercelRequest, res: VercelResponse) => {
   const api_key = req.query.api_key as string;
   const baseUrl = process.env.SMARTLEAD_API_URL;

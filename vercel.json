@@ -31,5 +31,10 @@
       "source": "/instantly/:path*",
       "destination": "/api/instantly/:path*"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "edge"
+    }
+  }
 } 

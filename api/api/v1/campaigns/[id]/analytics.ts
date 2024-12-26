@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+export const config = {
+  runtime: 'edge',
+};
+
 const handler = async (req: VercelRequest, res: VercelResponse) => {
   const { id } = req.query;
   const api_key = req.query.api_key as string;
