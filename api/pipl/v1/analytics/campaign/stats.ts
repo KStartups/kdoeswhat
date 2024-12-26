@@ -1,4 +1,9 @@
 export async function onRequestGet({ request, env }) {
+  console.log('Full env object:', {
+    PIPL_API_URL: env.PIPL_API_URL,
+    hasEnv: !!env.PIPL_API_URL
+  });
+
   const url = new URL(request.url);
   const api_key = url.searchParams.get('api_key');
   const workspace_id = url.searchParams.get('workspace_id');

@@ -12,6 +12,9 @@ vars = {
   INSTANTLY_API_URL = "https://api.instantly.ai"
 }
 
+[vars]
+PIPL_API_URL = "https://api.pipl.ai"
+
 # Add CORS headers
 [[headers]]
 for = "/*"
