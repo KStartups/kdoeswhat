@@ -31,25 +31,6 @@ interface Campaign {
   };
 }
 
-// Add new types for Pipl
-interface PiplResponse {
-  _id: string;
-  camp_name: string;
-  status: string;
-  lead_count: number;
-  completed_lead_count: number;
-  lead_contacted_count: number;
-  sent_count: number;
-  replied_count: number;
-  bounced_count: number;
-  positive_reply_count: number;
-  opportunity_val: number;
-  opportunity_val_per_count: number;
-  created_at: string;
-  start_date: string;
-  end_date: string;
-}
-
 // Add Instantly response interface
 interface InstantlyResponse {
   campaign_id: string;
@@ -68,6 +49,20 @@ type Sequencer = 'smartlead' | 'pipl' | 'instantly';
 
 // Add new type for date range
 type DateRange = '30' | '60' | '90';
+
+// Add a new interface for the campaign list response
+interface PiplCampaign {
+  id: string;
+  name: string;
+}
+
+// Add a new interface for the campaign stats response
+interface PiplCampaignStats {
+  lead_contacted_count: number;
+  replied_count: number;
+  positive_reply_count: number;
+  opportunity_val_per_count: number;
+}
 
 export default function CampaignDashboard() {
   const [apiKey, setApiKey] = useState('');
