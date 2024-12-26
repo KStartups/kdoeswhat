@@ -22,10 +22,10 @@ interface Campaign {
   replyRate: number;
   positiveRate: number;
   stats: {
-    prospectsEmailed: number;
-    replies: number;
-    positiveReplies: number;
-    pipelineValue: number;
+  prospectsEmailed: number;
+  replies: number;
+  positiveReplies: number;
+    pipelineValue?: number;
     name: string;
     id: string;
   };
@@ -158,7 +158,6 @@ export default function CampaignDashboard() {
                     prospectsEmailed: uniqueSentCount,
                     replies: replyCount,
                     positiveReplies: interestedCount,
-                    pipelineValue: 0,
                     name: stats.name,
                     id: campaign.id
                   }
@@ -226,21 +225,7 @@ export default function CampaignDashboard() {
             })
           );
 
-          const validCampaigns = campaignsWithStats.filter((campaign): campaign is Campaign => {
-            if (!campaign) return false;
-            return (
-              typeof campaign.id === 'string' &&
-              typeof campaign.name === 'string' &&
-              typeof campaign.replyRate === 'number' &&
-              typeof campaign.positiveRate === 'number' &&
-              typeof campaign.stats.prospectsEmailed === 'number' &&
-              typeof campaign.stats.replies === 'number' &&
-              typeof campaign.stats.positiveReplies === 'number' &&
-              typeof campaign.stats.pipelineValue === 'number' &&
-              typeof campaign.stats.name === 'string' &&
-              typeof campaign.stats.id === 'string'
-            );
-          });
+          const validCampaigns = campaignsWithStats.filter((c): c is Campaign => c !== null);
           setCampaigns(validCampaigns);
           setStep('select');
         } catch (error) {
