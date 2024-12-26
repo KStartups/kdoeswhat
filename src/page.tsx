@@ -123,7 +123,7 @@ export default function CampaignDashboard() {
     try {
       if (sequencer === 'smartlead') {
         try {
-          const response = await fetch(`/verify/api/campaigns?api_key=${apiKey}`);
+          const response = await fetch(`/api/campaigns?api_key=${apiKey}`);
           if (!response.ok) {
             throw new Error(`Error ${response.status}: ${await response.text()}`);
           }
@@ -136,7 +136,7 @@ export default function CampaignDashboard() {
           const campaignsWithStats = await Promise.all(
             campaignsData.map(async (campaign: { id: string; name?: string }) => {
               try {
-                const statsResponse = await fetch(`/verify/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`);
+                const statsResponse = await fetch(`/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`);
                 if (!statsResponse.ok) {
                   console.error(`Failed to fetch stats for campaign ${campaign.id}`);
                   return null;
@@ -189,7 +189,7 @@ export default function CampaignDashboard() {
       } else if (sequencer === 'pipl') {
         try {
           const response = await fetch(
-            `/verify/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+            `/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
           );
           
           if (!response.ok) {
@@ -235,7 +235,8 @@ export default function CampaignDashboard() {
           setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
         }
       } else if (sequencer === 'instantly') {
-        const response = await fetch(`/verify/instantly/analytics/campaign/summary?api_key=${apiKey}`);
+        const campaignsUrl = `/instantly/api/v1/analytics/campaign/summary?api_key=${apiKey}`;
+        const response = await fetch(campaignsUrl);
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${await response.text()}`);
