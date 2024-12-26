@@ -6,4 +6,9 @@ command = "npm run build"
 output_dir = "dist"
 
 [env.production]
-vars = { SMARTLEAD_API_URL = "https://server.smartlead.ai", PIPL_API_URL = "https://api.pipl.ai", INSTANTLY_API_URL = "https://api.instantly.ai" } 
+vars = { SMARTLEAD_API_URL = "https://server.smartlead.ai", PIPL_API_URL = "https://api.pipl.ai", INSTANTLY_API_URL = "https://api.instantly.ai" }
+
+[[redirects]]
+from = "/verify/*"
+to = "/index.html"
+status = 200 

@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "pages:deploy": "npm run build && wrangler pages deploy dist"
+    "pages:deploy": "npm run build && wrangler pages deploy dist",
+    "clean": "rm -rf dist",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.1",
