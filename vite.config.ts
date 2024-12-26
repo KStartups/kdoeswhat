@@ -14,12 +14,13 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        audit: 'index.html'  // This will become audit.html
+        audit: path.resolve(__dirname, 'index.html')  // Use full path
       },
       output: {
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        dir: 'dist',
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
       }
     }
   },
