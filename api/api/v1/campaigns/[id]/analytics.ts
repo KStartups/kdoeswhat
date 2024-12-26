@@ -1,5 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const handler = async (request: Request) => {
   const { searchParams, pathname } = new URL(request.url);
   const api_key = searchParams.get('api_key');
