@@ -14,13 +14,8 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        audit: path.resolve(__dirname, 'index.html')  // Use full path
-      },
-      output: {
-        dir: 'dist',
-        entryFileNames: 'assets/[name].[hash].js',
-        chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]'
+        main: 'index.html',
+        audit: 'src/audit.html'
       }
     }
   },

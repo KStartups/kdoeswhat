@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && echo '{\"version\":1,\"include\":[\"/*\"],\"exclude\":[\"/assets/*\"],\"routes\":[{\"src\":\"/audit\",\"dest\":\"/index.html\"}]}' > dist/_routes.json",
     "lint": "eslint .",
     "preview": "vite preview",
     "pages:deploy": "npm run build && wrangler pages deploy dist",
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
