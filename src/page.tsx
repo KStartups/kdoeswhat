@@ -222,7 +222,7 @@ export default function CampaignDashboard() {
           const replyRate = (totalReplies / campaign.contacted) * 100;
           const positiveRate = (positiveReplies / totalReplies) * 100;
 
-          return {
+          const campaignData: Campaign = {
             id: campaign.campaign_id,
             name: campaign.campaign_name,
             replyRate,
@@ -235,6 +235,8 @@ export default function CampaignDashboard() {
               id: campaign.campaign_id
             }
           };
+
+          return isValidCampaign(campaignData) ? campaignData : null;
         }).filter((campaign): campaign is Campaign => 
           campaign !== null && isValidCampaign(campaign)
         );
