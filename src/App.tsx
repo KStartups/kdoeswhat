@@ -1,8 +1,9 @@
-import CampaignDashboard from './page'
-import './App.css'
+import CampaignDashboard from '@/page'
 
 function App() {
-  return <CampaignDashboard />
+  return (
+    <CampaignDashboard />
+  )
 }
 
 export default App

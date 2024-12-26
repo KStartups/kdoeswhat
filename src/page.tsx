@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent } from "./components/ui/card"
-import { Input } from "./components/ui/input"
-import { Button } from "./components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./components/ui/select"
+} from "@/components/ui/select"
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
 
 interface CampaignStats {

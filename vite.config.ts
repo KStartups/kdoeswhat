@@ -9,18 +9,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://server.smartlead.ai',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      '/pipl': {
-        target: 'https://api.pipl.ai',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/pipl/, '')
-      }
-    }
+  build: {
+    outDir: 'dist',
+    sourcemap: true
   }
 })
