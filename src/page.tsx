@@ -133,7 +133,7 @@ export default function CampaignDashboard() {
         const campaignsData = await response.json();
         
         const campaignsWithStats = (await Promise.all(
-          campaignsData.map(async (campaign: any) => {
+          campaignsData.map(async (campaign: { id: string }) => {
             const statsUrl = `/api/api/v1/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
             const statsResponse = await fetch(statsUrl);
             const stats: SmartleadResponse = await statsResponse.json();
@@ -149,7 +149,7 @@ export default function CampaignDashboard() {
             const positiveRate = stats.campaign_lead_stats ? 
               (interestedCount / replyCount) * 100 : 0;
 
-            const campaignData = {
+            const campaignData: Campaign = {
               id: campaign.id,
               name: stats.name,
               replyRate,
