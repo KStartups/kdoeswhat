@@ -230,17 +230,21 @@ export default function CampaignDashboard() {
             campaignsList.map(async (campaign: any) => {
               console.log('Processing campaign:', campaign);
               try {
+                // Extract the correct ID and name from the campaign object
+                const campaignId = campaign._id || campaign.id;
+                const campaignName = campaign.camp_name || campaign.name;
+
                 const statsResponse = await fetch(
-                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaign.id}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaignId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
                 );
 
                 if (!statsResponse.ok) {
-                  console.error(`Failed to fetch stats for campaign ${campaign.id}:`, await statsResponse.text());
+                  console.error(`Failed to fetch stats for campaign ${campaignId}:`, await statsResponse.text());
                   return null;
                 }
 
                 const stats = await statsResponse.json();
-                console.log('Campaign stats for', campaign.id, ':', stats);
+                console.log('Campaign stats for', campaignId, ':', stats);
 
                 // Add safety checks for division
                 const replyRate = stats.lead_contacted_count > 0 
@@ -252,8 +256,8 @@ export default function CampaignDashboard() {
                   : 0;
 
                 return {
-                  id: campaign.id,
-                  name: campaign.name,
+                  id: campaignId,
+                  name: campaignName,
                   replyRate,
                   positiveRate,
                   stats: {
@@ -261,12 +265,12 @@ export default function CampaignDashboard() {
                     replies: stats.replied_count || 0,
                     positiveReplies: stats.positive_reply_count || 0,
                     pipelineValue: (stats.positive_reply_count || 0) * (stats.opportunity_val_per_count || 0),
-                    name: campaign.name,
-                    id: campaign.id
+                    name: campaignName,
+                    id: campaignId
                   }
                 };
               } catch (error) {
-                console.error(`Error processing campaign ${campaign.id}:`, error);
+                console.error(`Error processing campaign ${campaign._id || campaign.id}:`, error);
                 return null;
               }
             })
