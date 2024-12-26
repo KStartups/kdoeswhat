@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && echo '{\"version\":1,\"include\":[\"/*\"],\"exclude\":[\"/assets/*\"],\"routes\":[{\"src\":\"/audit\",\"dest\":\"/index.html\"}]}' > dist/_routes.json",
+    "build": "tsc && vite build && echo '{\"version\":1,\"include\":[\"/*\"],\"exclude\":[\"/assets/*\"],\"routes\":[{\"src\":\"/\",\"dest\":\"/index.html\"},{\"src\":\"/audit\",\"dest\":\"/audit.html\"}]}' > dist/_routes.json",
     "lint": "eslint .",
     "preview": "vite preview",
     "pages:deploy": "npm run build && wrangler pages deploy dist",
