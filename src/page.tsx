@@ -188,6 +188,11 @@ export default function CampaignDashboard() {
         }
       } else if (sequencer === 'pipl') {
         try {
+          console.log('Fetching Pipl campaigns with params:', {
+            workspaceId,
+            dateRange: getDateRange(Number(dateRange))
+          });
+
           const response = await fetch(
             `/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
           );
@@ -195,7 +200,8 @@ export default function CampaignDashboard() {
           const data = await response.json();
           
           if (!response.ok) {
-            throw new Error(data.error || `Error ${response.status}: ${JSON.stringify(data)}`);
+            console.error('Pipl API error response:', data);
+            throw new Error(data.details || data.error || `Error ${response.status}`);
           }
 
           if (!Array.isArray(data)) {

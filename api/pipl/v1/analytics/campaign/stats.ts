@@ -5,6 +5,9 @@ export async function onRequestGet({ request, env }) {
   const start_date = url.searchParams.get('start_date');
   const end_date = url.searchParams.get('end_date');
 
+  console.log('Received request with params:', { workspace_id, start_date, end_date });
+  console.log('PIPL_API_URL:', env.PIPL_API_URL);
+
   if (!api_key || !workspace_id || !start_date || !end_date) {
     return new Response(
       JSON.stringify({ 
@@ -30,7 +33,8 @@ export async function onRequestGet({ request, env }) {
     const response = await fetch(piplUrl.toString(), {
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${api_key}`
       }
     });
 
@@ -39,25 +43,35 @@ export async function onRequestGet({ request, env }) {
       console.error('Pipl API error:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorText
+        body: errorText,
+        url: piplUrl.toString()
       });
       throw new Error(`Pipl API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('Pipl API response:', data);
+    
     return new Response(JSON.stringify(data), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   } catch (error) {
     console.error('Pipl handler error:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to fetch from Pipl',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
       }
     );
   }
