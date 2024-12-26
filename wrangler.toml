@@ -1,9 +1,14 @@
 name = "slicey"
 compatibility_date = "2024-01-01"
+zone_id = "c4bcb3addddf24bfb8e22f46f4083bd1"
 
 [build]
 command = "npm run build"
 output_dir = "dist"
 
 [env.production]
-vars = { SMARTLEAD_API_URL = "https://server.smartlead.ai", PIPL_API_URL = "https://api.pipl.ai", INSTANTLY_API_URL = "https://api.instantly.ai" } 
+vars = { SMARTLEAD_API_URL = "https://server.smartlead.ai", PIPL_API_URL = "https://api.pipl.ai", INSTANTLY_API_URL = "https://api.instantly.ai" }
+
+[site]
+bucket = "./dist"
+entry-point = "functions" 
