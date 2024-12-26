@@ -12,7 +12,6 @@ vars = {
   INSTANTLY_API_URL = "https://api.instantly.ai"
 }
 
-[[routes]]
-pattern = "/api/pipl/v1/analytics/campaign/stats"
-zone_name = "slicey.co"
-custom_domain = true 
+# Add functions configuration
+[functions]
+directory = "functions" 
