@@ -277,6 +277,7 @@ export default function CampaignDashboard() {
               prospectsEmailed: campaign.contacted,
               replies: totalReplies,
               positiveReplies: positiveReplies,
+              pipelineValue: 0,
               name: campaign.campaign_name,
               id: campaign.campaign_id
             }
