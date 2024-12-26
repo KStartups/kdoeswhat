@@ -203,25 +203,25 @@ export default function CampaignDashboard() {
         }
       } else if (sequencer === 'pipl') {
         try {
-          // Get the campaign list
-          const campaignsResponse = await fetch(
-            `/api/pipl/v1/campaign/list?api_key=${apiKey}&workspace_id=${workspaceId}`
+          // Get all campaign stats in one call
+          const response = await fetch(
+            `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
           );
           
-          if (!campaignsResponse.ok) {
-            const errorText = await campaignsResponse.text();
-            console.error('Pipl campaign list error:', {
-              status: campaignsResponse.status,
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Pipl API error:', {
+              status: response.status,
               text: errorText
             });
-            throw new Error(`Failed to fetch campaign list: ${campaignsResponse.status}`);
+            throw new Error(`Failed to fetch from Pipl: ${response.status}`);
           }
 
-          const campaignsList = await campaignsResponse.json();
-          console.log('Raw campaigns list:', campaignsList);
+          const campaignsData = await response.json();
+          console.log('Raw Pipl response:', campaignsData);
 
-          // Map the campaigns directly - no need for stats call
-          const validCampaigns = campaignsList
+          // Map the response directly to our Campaign interface
+          const validCampaigns = campaignsData
             .map((campaign: PiplResponse) => {
               try {
                 return {
@@ -249,7 +249,7 @@ export default function CampaignDashboard() {
             })
             .filter((c): c is Campaign => c !== null);
 
-          console.log('Valid campaigns:', validCampaigns);
+          console.log('Processed campaigns:', validCampaigns);
           setCampaigns(validCampaigns);
           setStep('select');
         } catch (error) {
