@@ -133,7 +133,7 @@ export default function CampaignDashboard() {
         const campaignsData = await response.json();
         
         const campaignsWithStats = (await Promise.all(
-          campaignsData.map(async (campaign: { id: string }) => {
+          campaignsData.map(async (campaign: { id: string; name?: string }) => {
             const statsUrl = `/api/api/v1/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
             const statsResponse = await fetch(statsUrl);
             const stats: SmartleadResponse = await statsResponse.json();

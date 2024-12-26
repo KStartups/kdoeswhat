@@ -17,5 +17,19 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/api/:path*"
+    },
+    {
+      "source": "/pipl/:path*",
+      "destination": "/api/pipl/:path*"
+    },
+    {
+      "source": "/instantly/:path*",
+      "destination": "/api/instantly/:path*"
+    }
   ]
 } 
