@@ -1,13 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export const config = {
-  runtime: 'edge',
-};
-
-const handler = async (req: VercelRequest, res: VercelResponse) => {
-  const { id } = req.query;
-  const api_key = req.query.api_key as string;
+const handler = async (request: Request) => {
+  const { searchParams, pathname } = new URL(request.url);
+  const api_key = searchParams.get('api_key');
+  const id = pathname.split('/').pop();
   const baseUrl = process.env.SMARTLEAD_API_URL;
+
+  if (!api_key || !id) {
+    return new Response(JSON.stringify({ error: 'API key and ID are required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   
   try {
     const response = await fetch(
@@ -19,10 +23,16 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     }
     
     const data = await response.json();
-    return res.status(200).json(data);
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('Smartlead API Error:', error);
-    return res.status(500).json({ error: 'Failed to fetch from Smartlead' });
+    return new Response(JSON.stringify({ error: 'Failed to fetch from Smartlead' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };
 
