@@ -2,13 +2,14 @@ export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const api_key = url.searchParams.get('api_key');
   const workspace_id = url.searchParams.get('workspace_id');
-  const limit = url.searchParams.get('limit') || '100';
+
+  console.log('Pipl list request params:', { workspace_id });
 
   try {
     const piplUrl = `${env.PIPL_API_URL}/api/v1/campaign/list`;
-    const requestUrl = `${piplUrl}?api_key=${api_key}&workspace_id=${workspace_id}&limit=${limit}`;
+    const requestUrl = `${piplUrl}?api_key=${api_key}&workspace_id=${workspace_id}`;
 
-    console.log('Fetching from Pipl:', requestUrl);
+    console.log('Fetching campaign list from:', requestUrl);
 
     const response = await fetch(requestUrl, {
       headers: {
@@ -20,20 +21,21 @@ export async function onRequestGet({ request, env }) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Pipl API error:', {
+      console.error('Pipl list error:', {
         status: response.status,
-        statusText: response.statusText,
-        body: errorText
+        text: errorText
       });
       throw new Error(`Pipl API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('Pipl campaign list response:', data);
+
     return new Response(JSON.stringify(data), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Pipl handler error:', error);
+    console.error('Pipl list handler error:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Failed to fetch campaigns from Pipl',

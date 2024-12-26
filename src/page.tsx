@@ -218,11 +218,17 @@ export default function CampaignDashboard() {
           }
 
           const campaignsList = await campaignsResponse.json();
-          console.log('Campaigns list response:', campaignsList);
+          console.log('Raw campaigns list:', campaignsList);
+
+          if (!Array.isArray(campaignsList)) {
+            console.error('Invalid campaign list format:', campaignsList);
+            throw new Error('Invalid campaign list format from Pipl API');
+          }
 
           // Then get stats for each campaign
           const campaignsWithStats = await Promise.all(
             campaignsList.map(async (campaign: any) => {
+              console.log('Processing campaign:', campaign);
               try {
                 const statsResponse = await fetch(
                   `/api/pipl/v1/campaign/${campaign.id}/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
@@ -234,7 +240,7 @@ export default function CampaignDashboard() {
                 }
 
                 const stats = await statsResponse.json();
-                console.log('Campaign stats:', stats);
+                console.log('Campaign stats for', campaign.id, ':', stats);
 
                 // Add safety checks for division
                 const replyRate = stats.lead_contacted_count > 0 
