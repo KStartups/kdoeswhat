@@ -203,7 +203,7 @@ export default function CampaignDashboard() {
         }
       } else if (sequencer === 'pipl') {
         try {
-          // First, get the campaign list
+          // Get the campaign list
           const campaignsResponse = await fetch(
             `/api/pipl/v1/campaign/list?api_key=${apiKey}&workspace_id=${workspaceId}`
           );
@@ -220,36 +220,24 @@ export default function CampaignDashboard() {
           const campaignsList = await campaignsResponse.json();
           console.log('Raw campaigns list:', campaignsList);
 
-          if (!Array.isArray(campaignsList)) {
-            console.error('Invalid campaign list format:', campaignsList);
-            throw new Error('Invalid campaign list format from Pipl API');
-          }
-
-          // Then get stats for each campaign
-          const campaignsWithStats = await Promise.all(
-            campaignsList.map(async (campaign: any) => {
-              console.log('Processing campaign:', campaign);
+          // Map the campaigns directly - no need for stats call
+          const validCampaigns = campaignsList
+            .map((campaign: PiplResponse) => {
               try {
-                // No need to fetch stats separately since we already have them
-                // Map the Pipl API response fields directly
-                const replyRate = campaign.lead_contacted_count > 0 
-                  ? (campaign.replied_count / campaign.lead_contacted_count) * 100 
-                  : 0;
-
-                const positiveRate = campaign.replied_count > 0 
-                  ? (campaign.positive_reply_count / campaign.replied_count) * 100 
-                  : 0;
-
                 return {
                   id: campaign._id,
                   name: campaign.camp_name,
-                  replyRate,
-                  positiveRate,
+                  replyRate: campaign.lead_contacted_count > 0 
+                    ? (campaign.replied_count / campaign.lead_contacted_count) * 100 
+                    : 0,
+                  positiveRate: campaign.replied_count > 0 
+                    ? (campaign.positive_reply_count / campaign.replied_count) * 100 
+                    : 0,
                   stats: {
-                    prospectsEmailed: campaign.lead_contacted_count || 0,
-                    replies: campaign.replied_count || 0,
-                    positiveReplies: campaign.positive_reply_count || 0,
-                    pipelineValue: campaign.opportunity_val || 0,  // Use opportunity_val directly
+                    prospectsEmailed: campaign.lead_contacted_count,
+                    replies: campaign.replied_count,
+                    positiveReplies: campaign.positive_reply_count,
+                    pipelineValue: campaign.opportunity_val,
                     name: campaign.camp_name,
                     id: campaign._id
                   }
@@ -259,11 +247,9 @@ export default function CampaignDashboard() {
                 return null;
               }
             })
-          );
+            .filter((c): c is Campaign => c !== null);
 
-          const validCampaigns = campaignsWithStats.filter((c): c is Campaign => c !== null);
           console.log('Valid campaigns:', validCampaigns);
-
           setCampaigns(validCampaigns);
           setStep('select');
         } catch (error) {
