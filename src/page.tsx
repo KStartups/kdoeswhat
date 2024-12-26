@@ -224,6 +224,11 @@ export default function CampaignDashboard() {
           const validCampaigns = campaignsData
             .map((campaign: PiplResponse) => {
               try {
+                // Skip campaigns with no activity
+                if (!campaign.lead_contacted_count || !campaign.replied_count) {
+                  return null;
+                }
+
                 return {
                   id: campaign._id,
                   name: campaign.camp_name,
@@ -591,9 +596,13 @@ export default function CampaignDashboard() {
                   </div>
 
                   {/* Stats Grid - Always vertical on mobile */}
-                  <div className={`flex flex-col md:grid ${
-                    showPipelineValue && sequencer === 'pipl' ? 'md:grid-cols-4' : 'md:grid-cols-3'
-                  } gap-4 md:gap-8`}>
+                  <div className={`grid ${
+                    showPipelineValue && 
+                    sequencer === 'pipl' && 
+                    selectedCampaigns[displayPage]?.stats.pipelineValue > 0 
+                      ? 'md:grid-cols-4' 
+                      : 'md:grid-cols-3'
+                  } gap-4 md:gap-8 justify-center`}>
                     {/* Prospects Card */}
                     <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-white">
                       <CardContent className="p-4 md:p-6 text-center">
@@ -632,8 +641,10 @@ export default function CampaignDashboard() {
                       </CardContent>
                     </Card>
 
-                    {/* Update Pipeline Value Card condition */}
-                    {showPipelineValue && sequencer === 'pipl' && selectedCampaigns[displayPage]?.stats.pipelineValue > 0 && (
+                    {/* Pipeline Value Card - Only show if value exists */}
+                    {showPipelineValue && 
+                     sequencer === 'pipl' && 
+                     selectedCampaigns[displayPage]?.stats.pipelineValue > 0 && (
                       <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-white">
                         <CardContent className="p-4 md:p-6 text-center">
                           <p className="text-4xl md:text-6xl font-bold text-gray-900 mb-1 md:mb-2">
