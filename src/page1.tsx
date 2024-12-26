@@ -25,10 +25,29 @@ interface Campaign {
   prospectsEmailed: number;
   replies: number;
   positiveReplies: number;
-    pipelineValue: number;
+    pipelineValue?: number;
     name: string;
     id: string;
   };
+}
+
+// Add new types for Pipl
+interface PiplResponse {
+  _id: string;
+  camp_name: string;
+  status: string;
+  lead_count: number;
+  completed_lead_count: number;
+  lead_contacted_count: number;
+  sent_count: number;
+  replied_count: number;
+  bounced_count: number;
+  positive_reply_count: number;
+  opportunity_val: number;
+  opportunity_val_per_count: number;
+  created_at: string;
+  start_date: string;
+  end_date: string;
 }
 
 // Add Instantly response interface
@@ -49,39 +68,6 @@ type Sequencer = 'smartlead' | 'pipl' | 'instantly';
 
 // Add new type for date range
 type DateRange = '30' | '60' | '90';
-
-// Add a new interface for the campaign list response
-interface PiplCampaign {
-  id: string;
-  name: string;
-}
-
-// Add a new interface for the campaign stats response
-interface PiplCampaignStats {
-  lead_contacted_count: number;
-  replied_count: number;
-  positive_reply_count: number;
-  opportunity_val_per_count: number;
-}
-
-// Add this with the other interfaces
-interface PiplResponse {
-  _id: string;
-  camp_name: string;
-  status: string;
-  lead_count: number;
-  completed_lead_count: number;
-  lead_contacted_count: number;
-  sent_count: number;
-  replied_count: number;
-  bounced_count: number;
-  positive_reply_count: number;
-  opportunity_val: number;
-  opportunity_val_per_count: number;
-  created_at: string;
-  start_date: string;
-  end_date: string;
-}
 
 export default function CampaignDashboard() {
   const [apiKey, setApiKey] = useState('');
@@ -135,117 +121,86 @@ export default function CampaignDashboard() {
     setError(null);
 
     try {
+      const response = sequencer === 'smartlead' 
+        ? await fetch(`/api/api/v1/campaigns?api_key=${apiKey}`)
+        : await fetch(`/pipl/api/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`);
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
+      }
+
       if (sequencer === 'smartlead') {
-        try {
-          const response = await fetch(`/api/campaigns?api_key=${apiKey}`);
-          if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${await response.text()}`);
-          }
-          
-          const campaignsData = await response.json();
-          if (!Array.isArray(campaignsData)) {
-            throw new Error('Invalid response format from Smartlead API');
-          }
-          
-          const campaignsWithStats = await Promise.all(
-            campaignsData.map(async (campaign: { id: string; name?: string }) => {
-              try {
-                const statsResponse = await fetch(`/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`);
-                if (!statsResponse.ok) {
-                  console.error(`Failed to fetch stats for campaign ${campaign.id}`);
-                  return null;
-                }
-                
-                const stats: SmartleadResponse = await statsResponse.json();
-                if (!stats.unique_sent_count) return null;
-                
-                // Ensure numbers are properly parsed
-                const uniqueSentCount = parseInt(stats.unique_sent_count.toString(), 10);
-                const replyCount = parseInt(stats.reply_count.toString(), 10);
-                const interestedCount = parseInt(stats.campaign_lead_stats?.interested?.toString() || '0', 10);
+        const campaignsData = await response.json();
+        
+        const campaignsWithStats = (await Promise.all(
+          campaignsData.map(async (campaign: { id: string; name?: string }) => {
+            const statsUrl = `/api/api/v1/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
+            const statsResponse = await fetch(statsUrl);
+            const stats: SmartleadResponse = await statsResponse.json();
+            
+            if (!stats.unique_sent_count) return null;
+            
+            // Ensure numbers are properly parsed
+            const uniqueSentCount = parseInt(stats.unique_sent_count.toString(), 10);
+            const replyCount = parseInt(stats.reply_count.toString(), 10);
+            const interestedCount = parseInt(stats.campaign_lead_stats?.interested?.toString() || '0', 10);
 
-                const replyRate = (replyCount / uniqueSentCount) * 100;
-                const positiveRate = stats.campaign_lead_stats ? 
-                  (interestedCount / replyCount) * 100 : 0;
+            const replyRate = (replyCount / uniqueSentCount) * 100;
+            const positiveRate = stats.campaign_lead_stats ? 
+              (interestedCount / replyCount) * 100 : 0;
 
-                const campaignData: Campaign = {
-                  id: campaign.id,
-                  name: stats.name,
-                  replyRate,
-                  positiveRate,
-                  stats: {
-                    prospectsEmailed: uniqueSentCount,
-                    replies: replyCount,
-                    positiveReplies: interestedCount,
-                    pipelineValue: 0,
-                    name: stats.name,
-                    id: campaign.id
-                  }
-                };
-
-                return isValidCampaign(campaignData) ? campaignData : null;
-              } catch (error) {
-                console.error(`Error fetching stats for campaign ${campaign.id}:`, error);
-                return null;
+            const campaignData: Campaign = {
+              id: campaign.id,
+              name: stats.name,
+              replyRate,
+              positiveRate,
+              stats: {
+                prospectsEmailed: uniqueSentCount,
+                replies: replyCount,
+                positiveReplies: interestedCount,
+                name: stats.name,
+                id: campaign.id
               }
-            })
-          );
+            };
 
-          const validCampaigns = campaignsWithStats.filter((campaign): campaign is Campaign => 
-            campaign !== null && isValidCampaign(campaign)
-          );
+            return isValidCampaign(campaignData) ? campaignData : null;
+          })
+        )).filter((campaign): campaign is Campaign => campaign !== null);
 
-          setCampaigns(validCampaigns);
-          setStep('select');
-        } catch (error) {
-          console.error('API Error:', error);
-          setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
-        }
+        setCampaigns(campaignsWithStats);
+        setStep('select');
       } else if (sequencer === 'pipl') {
-        try {
-          const response = await fetch(
-            `/pipl/api/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
-          );
+        const campaignsData: PiplResponse[] = await response.json();
+        
+        const campaignsWithStats = campaignsData
+          .map((campaign: PiplResponse) => {
+            if (!campaign.lead_contacted_count) return null;
 
-          if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${await response.text()}`);
-          }
+            const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
+            const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
+            const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
 
-          const campaignsData: PiplResponse[] = await response.json();
-          
-          const campaignsWithStats = campaignsData
-            .map((campaign: PiplResponse) => {
-              if (!campaign.lead_contacted_count) return null;
-
-              const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
-              const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
-              const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
-
-              const campaignData: Campaign = {
-                id: campaign._id,
+            const campaignData: Campaign = {
+              id: campaign._id,
+              name: campaign.camp_name,
+              replyRate,
+              positiveRate,
+              stats: {
+                prospectsEmailed: campaign.lead_contacted_count,
+                replies: campaign.replied_count,
+                positiveReplies: campaign.positive_reply_count,
+                pipelineValue,
                 name: campaign.camp_name,
-                replyRate,
-                positiveRate,
-                stats: {
-                  prospectsEmailed: campaign.lead_contacted_count,
-                  replies: campaign.replied_count,
-                  positiveReplies: campaign.positive_reply_count,
-                  pipelineValue,
-                  name: campaign.camp_name,
-                  id: campaign._id
-                }
-              };
+                id: campaign._id
+              }
+            };
 
-              return isValidCampaign(campaignData) ? campaignData : null;
-            })
-            .filter((campaign): campaign is Campaign => campaign !== null);
+            return isValidCampaign(campaignData) ? campaignData : null;
+          })
+          .filter((campaign): campaign is Campaign => campaign !== null);
 
-          setCampaigns(campaignsWithStats);
-          setStep('select');
-        } catch (error) {
-          console.error('Pipl API Error:', error);
-          setError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
-        }
+        setCampaigns(campaignsWithStats);
+        setStep('select');
       } else if (sequencer === 'instantly') {
         const campaignsUrl = `/instantly/api/v1/analytics/campaign/summary?api_key=${apiKey}`;
         const response = await fetch(campaignsUrl);
@@ -276,7 +231,6 @@ export default function CampaignDashboard() {
               prospectsEmailed: campaign.contacted,
               replies: totalReplies,
               positiveReplies: positiveReplies,
-              pipelineValue: 0,
               name: campaign.campaign_name,
               id: campaign.campaign_id
             }
