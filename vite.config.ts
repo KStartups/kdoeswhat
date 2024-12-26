@@ -15,7 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
-        audit: 'src/audit.html'
+        audit: 'audit.html'
       }
     }
   },
