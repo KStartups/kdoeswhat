@@ -13,8 +13,4 @@ vars = {
 }
 
 [functions]
-directory = "functions"
-
-[[functions.routes]]
-pattern = "/api/pipl/v1/analytics/campaign/stats"
-function = "api/pipl/v1/analytics/campaign/stats" 
+directory = "functions" 
