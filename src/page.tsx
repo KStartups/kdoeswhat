@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Check, ChevronDown, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
 
 interface CampaignStats {
   prospectsEmailed: number;
@@ -37,7 +37,14 @@ interface Campaign {
   name: string;
   replyRate: number;
   positiveRate: number;
-  stats: CampaignStats;
+  stats: {
+    prospectsEmailed: number;
+    replies: number;
+    positiveReplies: number;
+    pipelineValue?: number;
+    name: string;
+    id: string;
+  };
 }
 
 // Add new types for Pipl
@@ -53,6 +60,7 @@ interface PiplResponse {
   bounced_count: number;
   positive_reply_count: number;
   opportunity_val: number;
+  opportunity_val_per_count: number;
   created_at: string;
   start_date: string;
   end_date: string;
@@ -89,7 +97,7 @@ export default function CampaignDashboard() {
   const [displayPage, setDisplayPage] = useState(0);
   const [sequencer, setSequencer] = useState<Sequencer>('smartlead');
   const [workspaceId, setWorkspaceId] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange>('90');
+  const [dateRange] = useState<DateRange>('90');
   const [showPipelineValue, setShowPipelineValue] = useState(true);
   const [showCombinedStats, setShowCombinedStats] = useState(true);
 
@@ -259,7 +267,7 @@ export default function CampaignDashboard() {
   };
 
   const handleCampaignSelect = (campaignId: string) => {
-    const campaign = campaigns.find(c => c.id === campaignId);
+    const campaign = campaigns.find((c: Campaign) => c.id === campaignId);
     if (!campaign) return;
 
     setSelectedCampaigns(prev => {
@@ -721,17 +729,8 @@ export default function CampaignDashboard() {
   );
 }
 
-function StatColumn({ number, label }: { number: number; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-6xl font-bold">{number.toLocaleString()}</p>
-      <p className="mt-2 text-sm font-medium">{label}</p>
-    </div>
-  );
-}
-
 // Add a function to validate campaign data
-const isValidCampaign = (campaign: Campaign) => {
+const isValidCampaign = (campaign: any): campaign is Campaign => {
   return !isNaN(campaign.replyRate) && 
          !isNaN(campaign.positiveRate) && 
          campaign.stats.prospectsEmailed > 0 && 
