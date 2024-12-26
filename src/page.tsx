@@ -192,11 +192,11 @@ export default function CampaignDashboard() {
             throw new Error('Failed to fetch campaign list');
           }
 
-          const campaignsList = await campaignsResponse.json();
+          const campaignsList = await campaignsResponse.json() as PiplCampaign[];
 
           // Then get stats for each campaign
           const campaignsWithStats = await Promise.all(
-            campaignsList.map(async (campaign: any) => {
+            campaignsList.map(async (campaign: PiplCampaign) => {
               const statsResponse = await fetch(
                 `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaign.id}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
               );
@@ -206,7 +206,7 @@ export default function CampaignDashboard() {
                 return null;
               }
 
-              const stats = await statsResponse.json();
+              const stats = await statsResponse.json() as PiplCampaignStats;
 
               return {
                 id: campaign.id,

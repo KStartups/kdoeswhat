@@ -8,15 +8,24 @@ export async function onRequestGet({ request, env }) {
     const piplUrl = `${env.PIPL_API_URL}/api/v1/campaign/list`;
     const requestUrl = `${piplUrl}?api_key=${api_key}&workspace_id=${workspace_id}&limit=${limit}`;
 
+    console.log('Fetching from Pipl:', requestUrl);
+
     const response = await fetch(requestUrl, {
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${api_key}`
       }
     });
 
     if (!response.ok) {
-      throw new Error(`Pipl API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Pipl API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Pipl API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
@@ -26,11 +35,11 @@ export async function onRequestGet({ request, env }) {
   } catch (error) {
     console.error('Pipl handler error:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch campaigns from Pipl' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ 
+        error: 'Failed to fetch campaigns from Pipl',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 } 
