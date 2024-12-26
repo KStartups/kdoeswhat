@@ -230,47 +230,32 @@ export default function CampaignDashboard() {
             campaignsList.map(async (campaign: any) => {
               console.log('Processing campaign:', campaign);
               try {
-                // Extract the correct ID and name from the campaign object
-                const campaignId = campaign._id || campaign.id;
-                const campaignName = campaign.camp_name || campaign.name;
-
-                const statsResponse = await fetch(
-                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaignId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
-                );
-
-                if (!statsResponse.ok) {
-                  console.error(`Failed to fetch stats for campaign ${campaignId}:`, await statsResponse.text());
-                  return null;
-                }
-
-                const stats = await statsResponse.json();
-                console.log('Campaign stats for', campaignId, ':', stats);
-
-                // Add safety checks for division
-                const replyRate = stats.lead_contacted_count > 0 
-                  ? (stats.replied_count / stats.lead_contacted_count) * 100 
+                // No need to fetch stats separately since we already have them
+                // Map the Pipl API response fields directly
+                const replyRate = campaign.lead_contacted_count > 0 
+                  ? (campaign.replied_count / campaign.lead_contacted_count) * 100 
                   : 0;
 
-                const positiveRate = stats.replied_count > 0 
-                  ? (stats.positive_reply_count / stats.replied_count) * 100 
+                const positiveRate = campaign.replied_count > 0 
+                  ? (campaign.positive_reply_count / campaign.replied_count) * 100 
                   : 0;
 
                 return {
-                  id: campaignId,
-                  name: campaignName,
+                  id: campaign._id,
+                  name: campaign.camp_name,
                   replyRate,
                   positiveRate,
                   stats: {
-                    prospectsEmailed: stats.lead_contacted_count || 0,
-                    replies: stats.replied_count || 0,
-                    positiveReplies: stats.positive_reply_count || 0,
-                    pipelineValue: (stats.positive_reply_count || 0) * (stats.opportunity_val_per_count || 0),
-                    name: campaignName,
-                    id: campaignId
+                    prospectsEmailed: campaign.lead_contacted_count || 0,
+                    replies: campaign.replied_count || 0,
+                    positiveReplies: campaign.positive_reply_count || 0,
+                    pipelineValue: campaign.opportunity_val || 0,  // Use opportunity_val directly
+                    name: campaign.camp_name,
+                    id: campaign._id
                   }
                 };
               } catch (error) {
-                console.error(`Error processing campaign ${campaign._id || campaign.id}:`, error);
+                console.error(`Error processing campaign ${campaign._id}:`, error);
                 return null;
               }
             })
