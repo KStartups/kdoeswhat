@@ -22,9 +22,9 @@ interface Campaign {
   replyRate: number;
   positiveRate: number;
   stats: {
-    prospectsEmailed: number;
-    replies: number;
-    positiveReplies: number;
+  prospectsEmailed: number;
+  replies: number;
+  positiveReplies: number;
     pipelineValue?: number;
     name: string;
     id: string;
@@ -388,7 +388,7 @@ export default function CampaignDashboard() {
         );
 
       case 'select':
-        return (
+  return (
           <Card className="w-full max-w-[700px] bg-white text-black mx-auto">
             <CardContent className="space-y-4 p-4 md:p-6">
               <h2 className="text-xl font-bold text-center mb-4">Select Campaigns</h2>
@@ -431,7 +431,7 @@ export default function CampaignDashboard() {
                     </Button>
                   </div>
                 ))}
-              </div>
+            </div>
               <div className="flex justify-between mt-4">
                 <Button
                   variant="outline"
@@ -679,10 +679,10 @@ export default function CampaignDashboard() {
                           </CardContent>
                         </Card>
                       )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
             )}
 
             {/* Verify Another Button */}
@@ -700,10 +700,10 @@ export default function CampaignDashboard() {
               >
                 Verify Another Campaign
               </Button>
-            </div>
-          </div>
+      </div>
+    </div>
         );
-    }
+}
   };
 
   return (
