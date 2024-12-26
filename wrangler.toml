@@ -12,6 +12,9 @@ vars = {
   INSTANTLY_API_URL = "https://api.instantly.ai"
 }
 
-# Add functions configuration
 [functions]
-directory = "functions" 
+directory = "functions"
+
+[[functions.routes]]
+pattern = "/api/pipl/v1/analytics/campaign/stats"
+function = "api/pipl/v1/analytics/campaign/stats" 
