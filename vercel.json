@@ -20,15 +20,15 @@
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/api/:path*"
+      "source": "/api/campaigns/:path*",
+      "destination": "/api/campaigns/:path*"
     },
     {
-      "source": "/pipl/:path*",
+      "source": "/api/pipl/:path*",
       "destination": "/api/pipl/:path*"
     },
     {
-      "source": "/instantly/:path*",
+      "source": "/api/instantly/:path*",
       "destination": "/api/instantly/:path*"
     }
   ],

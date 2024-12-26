@@ -1,18 +1,19 @@
 const handler = async (request: Request) => {
-  const { searchParams } = new URL(request.url);
-  const api_key = searchParams.get('api_key');
-  const baseUrl = process.env.SMARTLEAD_API_URL;
-
-  if (!api_key) {
-    return new Response(JSON.stringify({ error: 'API key is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-  
   try {
+    const url = new URL(request.url, 'http://localhost');
+    const api_key = url.searchParams.get('api_key');
+    const id = url.pathname.split('/').slice(-2)[0];
+    const baseUrl = process.env.SMARTLEAD_API_URL || 'https://server.smartlead.ai';
+
+    if (!api_key || !id) {
+      return new Response(JSON.stringify({ error: 'API key and ID are required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     const response = await fetch(
-      `${baseUrl}/api/v1/campaigns?api_key=${api_key}`
+      `${baseUrl}/api/v1/campaigns/${id}/analytics?api_key=${api_key}`
     );
     
     if (!response.ok) {
@@ -33,4 +34,4 @@ const handler = async (request: Request) => {
   }
 };
 
-export default handler; 
+export { handler as GET }; 

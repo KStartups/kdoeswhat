@@ -122,8 +122,8 @@ export default function CampaignDashboard() {
 
     try {
       const response = sequencer === 'smartlead' 
-        ? await fetch(`/api/api/v1/campaigns?api_key=${apiKey}`)
-        : await fetch(`/pipl/api/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`);
+        ? await fetch(`/api/campaigns?api_key=${apiKey}`)
+        : await fetch(`/api/pipl/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`);
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${await response.text()}`);
@@ -134,7 +134,7 @@ export default function CampaignDashboard() {
         
         const campaignsWithStats = (await Promise.all(
           campaignsData.map(async (campaign: { id: string; name?: string }) => {
-            const statsUrl = `/api/api/v1/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
+            const statsUrl = `/api/campaigns/${campaign.id}/analytics?api_key=${apiKey}`;
             const statsResponse = await fetch(statsUrl);
             const stats: SmartleadResponse = await statsResponse.json();
             

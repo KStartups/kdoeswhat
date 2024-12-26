@@ -1,19 +1,19 @@
 const handler = async (request: Request) => {
-  const { searchParams } = new URL(request.url);
-  const api_key = searchParams.get('api_key');
-  const workspace_id = searchParams.get('workspace_id');
-  const start_date = searchParams.get('start_date');
-  const end_date = searchParams.get('end_date');
-  const baseUrl = process.env.PIPL_API_URL;
-
-  if (!api_key || !workspace_id || !start_date || !end_date) {
-    return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-  
   try {
+    const url = new URL(request.url, 'http://localhost');
+    const api_key = url.searchParams.get('api_key');
+    const workspace_id = url.searchParams.get('workspace_id');
+    const start_date = url.searchParams.get('start_date');
+    const end_date = url.searchParams.get('end_date');
+    const baseUrl = process.env.PIPL_API_URL || 'https://api.pipl.ai';
+
+    if (!api_key || !workspace_id || !start_date || !end_date) {
+      return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     const response = await fetch(
       `${baseUrl}/v1/analytics/campaign/stats?api_key=${api_key}&workspace_id=${workspace_id}&start_date=${start_date}&end_date=${end_date}`
     );
@@ -36,4 +36,4 @@ const handler = async (request: Request) => {
   }
 };
 
-export default handler; 
+export { handler as GET }; 
