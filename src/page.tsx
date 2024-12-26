@@ -225,7 +225,7 @@ export default function CampaignDashboard() {
             campaignsList.map(async (campaign: any) => {
               try {
                 const statsResponse = await fetch(
-                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaign.id}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+                  `/api/pipl/v1/campaign/${campaign.id}/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
                 );
 
                 if (!statsResponse.ok) {
@@ -236,16 +236,25 @@ export default function CampaignDashboard() {
                 const stats = await statsResponse.json();
                 console.log('Campaign stats:', stats);
 
+                // Add safety checks for division
+                const replyRate = stats.lead_contacted_count > 0 
+                  ? (stats.replied_count / stats.lead_contacted_count) * 100 
+                  : 0;
+
+                const positiveRate = stats.replied_count > 0 
+                  ? (stats.positive_reply_count / stats.replied_count) * 100 
+                  : 0;
+
                 return {
                   id: campaign.id,
                   name: campaign.name,
-                  replyRate: (stats.replied_count / stats.lead_contacted_count) * 100,
-                  positiveRate: (stats.positive_reply_count / stats.replied_count) * 100,
+                  replyRate,
+                  positiveRate,
                   stats: {
-                    prospectsEmailed: stats.lead_contacted_count,
-                    replies: stats.replied_count,
-                    positiveReplies: stats.positive_reply_count,
-                    pipelineValue: stats.positive_reply_count * stats.opportunity_val_per_count,
+                    prospectsEmailed: stats.lead_contacted_count || 0,
+                    replies: stats.replied_count || 0,
+                    positiveReplies: stats.positive_reply_count || 0,
+                    pipelineValue: (stats.positive_reply_count || 0) * (stats.opportunity_val_per_count || 0),
                     name: campaign.name,
                     id: campaign.id
                   }
@@ -484,10 +493,10 @@ export default function CampaignDashboard() {
                       <span className="truncate mr-2">{campaign.name}</span>
                       <span className="flex-shrink-0">
                         ({campaign.replyRate.toFixed(1)}% Reply, {campaign.positiveRate.toFixed(0)}% Positive
-                        {campaign.stats.pipelineValue !== undefined && 
+                        {campaign.stats.pipelineValue > 0 && sequencer === 'pipl' && 
                           `, ${showPipelineValue 
                             ? `$${campaign.stats.pipelineValue.toLocaleString()} Pipeline`
-                            : '$ •���•,••• Pipeline'
+                            : '$ •••,••• Pipeline'
                           }`
                         })
                         {selectedCampaigns.find(c => c.id === campaign.id) && 
@@ -642,8 +651,8 @@ export default function CampaignDashboard() {
                       </CardContent>
                     </Card>
 
-                    {/* Pipeline Value Card - Only show if enabled and for Pipl */}
-                    {showPipelineValue && sequencer === 'pipl' && selectedCampaigns[displayPage]?.stats.pipelineValue !== undefined && (
+                    {/* Update Pipeline Value Card condition */}
+                    {showPipelineValue && sequencer === 'pipl' && selectedCampaigns[displayPage]?.stats.pipelineValue > 0 && (
                       <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-white">
                         <CardContent className="p-4 md:p-6 text-center">
                           <p className="text-4xl md:text-6xl font-bold text-gray-900 mb-1 md:mb-2">
