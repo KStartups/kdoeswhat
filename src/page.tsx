@@ -203,44 +203,64 @@ export default function CampaignDashboard() {
         }
       } else if (sequencer === 'pipl') {
         try {
-          const response = await fetch(
-            `/pipl/api/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+          // First, get the campaign list
+          const campaignsResponse = await fetch(
+            `/api/pipl/v1/campaign/list?api_key=${apiKey}&workspace_id=${workspaceId}`
           );
-
-          if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${await response.text()}`);
+          
+          if (!campaignsResponse.ok) {
+            const errorText = await campaignsResponse.text();
+            console.error('Pipl campaign list error:', {
+              status: campaignsResponse.status,
+              text: errorText
+            });
+            throw new Error(`Failed to fetch campaign list: ${campaignsResponse.status}`);
           }
 
-          const campaignsData: PiplResponse[] = await response.json();
-          
-          const campaignsWithStats = campaignsData
-            .map((campaign: PiplResponse) => {
-              if (!campaign.lead_contacted_count) return null;
+          const campaignsList = await campaignsResponse.json();
+          console.log('Campaigns list response:', campaignsList);
 
-              const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
-              const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
-              const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
+          // Then get stats for each campaign
+          const campaignsWithStats = await Promise.all(
+            campaignsList.map(async (campaign: any) => {
+              try {
+                const statsResponse = await fetch(
+                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaign.id}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+                );
 
-              const campaignData: Campaign = {
-                id: campaign._id,
-                name: campaign.camp_name,
-                replyRate,
-                positiveRate,
-                stats: {
-                  prospectsEmailed: campaign.lead_contacted_count,
-                  replies: campaign.replied_count,
-                  positiveReplies: campaign.positive_reply_count,
-                  pipelineValue,
-                  name: campaign.camp_name,
-                  id: campaign._id
+                if (!statsResponse.ok) {
+                  console.error(`Failed to fetch stats for campaign ${campaign.id}:`, await statsResponse.text());
+                  return null;
                 }
-              };
 
-              return isValidCampaign(campaignData) ? campaignData : null;
+                const stats = await statsResponse.json();
+                console.log('Campaign stats:', stats);
+
+                return {
+                  id: campaign.id,
+                  name: campaign.name,
+                  replyRate: (stats.replied_count / stats.lead_contacted_count) * 100,
+                  positiveRate: (stats.positive_reply_count / stats.replied_count) * 100,
+                  stats: {
+                    prospectsEmailed: stats.lead_contacted_count,
+                    replies: stats.replied_count,
+                    positiveReplies: stats.positive_reply_count,
+                    pipelineValue: stats.positive_reply_count * stats.opportunity_val_per_count,
+                    name: campaign.name,
+                    id: campaign.id
+                  }
+                };
+              } catch (error) {
+                console.error(`Error processing campaign ${campaign.id}:`, error);
+                return null;
+              }
             })
-            .filter((campaign): campaign is Campaign => campaign !== null);
+          );
 
-          setCampaigns(campaignsWithStats);
+          const validCampaigns = campaignsWithStats.filter((c): c is Campaign => c !== null);
+          console.log('Valid campaigns:', validCampaigns);
+
+          setCampaigns(validCampaigns);
           setStep('select');
         } catch (error) {
           console.error('Pipl API Error:', error);
