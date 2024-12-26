@@ -22,19 +22,17 @@ export async function onRequestGet({ request, env }) {
   }
 
   try {
-    const piplUrl = new URL('/v1/analytics/campaign/stats', env.PIPL_API_URL);
-    piplUrl.searchParams.set('api_key', api_key);
-    piplUrl.searchParams.set('workspace_id', workspace_id);
-    piplUrl.searchParams.set('start_date', start_date);
-    piplUrl.searchParams.set('end_date', end_date);
+    const piplUrl = `${env.PIPL_API_URL}/v1/analytics/campaign/stats`;
+    const requestUrl = `${piplUrl}?api_key=${api_key}&workspace_id=${workspace_id}&start_date=${start_date}&end_date=${end_date}`;
 
-    console.log('Fetching from Pipl:', piplUrl.toString());
+    console.log('Fetching from Pipl:', requestUrl);
 
-    const response = await fetch(piplUrl.toString(), {
+    const response = await fetch(requestUrl, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${api_key}`
+        'Authorization': `Bearer ${api_key}`,
+        'X-Workspace-ID': workspace_id
       }
     });
 
@@ -44,7 +42,7 @@ export async function onRequestGet({ request, env }) {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
-        url: piplUrl.toString()
+        url: requestUrl
       });
       throw new Error(`Pipl API error: ${response.status} ${errorText}`);
     }
@@ -55,7 +53,9 @@ export async function onRequestGet({ request, env }) {
     return new Response(JSON.stringify(data), {
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       }
     });
   } catch (error) {
@@ -64,13 +64,21 @@ export async function onRequestGet({ request, env }) {
       JSON.stringify({ 
         error: 'Failed to fetch from Pipl',
         details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        requestInfo: {
+          workspace_id,
+          start_date,
+          end_date,
+          apiUrl: env.PIPL_API_URL
+        }
       }),
       {
         status: 500,
         headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
         }
       }
     );
