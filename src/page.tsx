@@ -4,23 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Check, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
-
-interface CampaignStats {
-  prospectsEmailed: number;
-  replies: number;
-  positiveReplies: number;
-  pipelineValue?: number;
-  name: string;
-  id: string;
-}
 
 interface SmartleadResponse {
   unique_sent_count: number;
@@ -189,14 +173,14 @@ export default function CampaignDashboard() {
         const campaignsData: PiplResponse[] = await response.json();
         
         const campaignsWithStats = campaignsData
-          .map(campaign => {
+          .map((campaign: PiplResponse) => {
             if (!campaign.lead_contacted_count) return null;
 
             const replyRate = (campaign.replied_count / campaign.lead_contacted_count) * 100;
             const positiveRate = (campaign.positive_reply_count / campaign.replied_count) * 100;
             const pipelineValue = campaign.positive_reply_count * campaign.opportunity_val_per_count;
 
-            const campaignData = {
+            const campaignData: Campaign = {
               id: campaign._id,
               name: campaign.camp_name,
               replyRate,
@@ -435,7 +419,7 @@ export default function CampaignDashboard() {
                         {campaign.stats.pipelineValue !== undefined && 
                           `, ${showPipelineValue 
                             ? `$${campaign.stats.pipelineValue.toLocaleString()} Pipeline`
-                            : '$ •••,••• Pipeline'
+                            : '$ •���•,••• Pipeline'
                           }`
                         })
                         {selectedCampaigns.find(c => c.id === campaign.id) && 
@@ -730,12 +714,14 @@ export default function CampaignDashboard() {
 }
 
 // Add a function to validate campaign data
-const isValidCampaign = (campaign: any): campaign is Campaign => {
-  return !isNaN(campaign.replyRate) && 
-         !isNaN(campaign.positiveRate) && 
-         campaign.stats.prospectsEmailed > 0 && 
-         campaign.stats.replies >= 0 && 
-         campaign.stats.positiveReplies >= 0;
+const isValidCampaign = (campaign: unknown): campaign is Campaign => {
+  if (!campaign || typeof campaign !== 'object') return false;
+  const c = campaign as Campaign;
+  return !isNaN(c.replyRate) && 
+         !isNaN(c.positiveRate) && 
+         c.stats.prospectsEmailed > 0 && 
+         c.stats.replies >= 0 && 
+         c.stats.positiveReplies >= 0;
 };
 
 // Add this helper function to calculate total pipeline value
