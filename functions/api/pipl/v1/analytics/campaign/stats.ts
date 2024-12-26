@@ -6,26 +6,13 @@ export async function onRequestGet({ request, env }) {
   const start_date = url.searchParams.get('start_date');
   const end_date = url.searchParams.get('end_date');
 
-  console.log('Received request with params:', { workspace_id, start_date, end_date });
-
-  if (!api_key || !workspace_id || !campaign_id || !start_date || !end_date) {
-    return new Response(
-      JSON.stringify({ 
-        error: 'Missing required parameters',
-        params: { api_key: !!api_key, workspace_id: !!workspace_id, campaign_id: !!campaign_id, start_date: !!start_date, end_date: !!end_date }
-      }),
-      { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-  }
+  console.log('Pipl stats request params:', { workspace_id, campaign_id, start_date, end_date });
 
   try {
     const piplUrl = `${env.PIPL_API_URL}/api/v1/analytics/campaign/stats`;
     const requestUrl = `${piplUrl}?api_key=${api_key}&workspace_id=${workspace_id}&campaign_id=${campaign_id}&start_date=${start_date}&end_date=${end_date}`;
 
-    console.log('Fetching from Pipl:', requestUrl);
+    console.log('Fetching stats from:', requestUrl);
 
     const response = await fetch(requestUrl, {
       headers: {
@@ -37,23 +24,24 @@ export async function onRequestGet({ request, env }) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Pipl API error:', {
+      console.error('Pipl stats error:', {
         status: response.status,
-        statusText: response.statusText,
-        body: errorText
+        text: errorText
       });
       throw new Error(`Pipl API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('Pipl stats response:', data);
+
     return new Response(JSON.stringify(data), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Pipl handler error:', error);
+    console.error('Pipl stats handler error:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to fetch from Pipl',
+        error: 'Failed to fetch stats from Pipl',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

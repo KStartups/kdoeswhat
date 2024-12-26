@@ -231,7 +231,7 @@ export default function CampaignDashboard() {
               console.log('Processing campaign:', campaign);
               try {
                 const statsResponse = await fetch(
-                  `/api/pipl/v1/campaign/${campaign.id}/stats?api_key=${apiKey}&workspace_id=${workspaceId}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
+                  `/api/pipl/v1/analytics/campaign/stats?api_key=${apiKey}&workspace_id=${workspaceId}&campaign_id=${campaign.id}&start_date=${getDateRange(Number(dateRange)).start}&end_date=${getDateRange(Number(dateRange)).end}`
                 );
 
                 if (!statsResponse.ok) {
