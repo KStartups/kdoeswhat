@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const handler = async (req: VercelRequest, res: VercelResponse) => {
   const { api_key, workspace_id, start_date, end_date } = req.query;
+  const baseUrl = process.env.PIPL_API_URL;
   
   try {
-    const baseUrl = process.env.PIPL_API_URL;
     const response = await fetch(
       `${baseUrl}/v1/analytics/campaign/stats?api_key=${api_key}&workspace_id=${workspace_id}&start_date=${start_date}&end_date=${end_date}`
     );
@@ -19,4 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('Pipl API Error:', error);
     return res.status(500).json({ error: 'Failed to fetch from Pipl' });
   }
-} 
+};
+
+export default handler; 

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const handler = async (req: VercelRequest, res: VercelResponse) => {
   const api_key = req.query.api_key as string;
   const baseUrl = process.env.SMARTLEAD_API_URL;
   
@@ -19,4 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('Smartlead API Error:', error);
     return res.status(500).json({ error: 'Failed to fetch from Smartlead' });
   }
-} 
+};
+
+export default handler; 
