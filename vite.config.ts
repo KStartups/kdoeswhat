@@ -11,30 +11,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: 'index.html',
-        audit: 'audit.html'
-      }
-    }
+    sourcemap: true
   },
   server: {
+    port: 5173,
     proxy: {
       '/api': {
-        target: 'https://server.smartlead.ai',
+        target: 'https://ilbkvpwwyxdgzipqflgh.supabase.co/functions/v1',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      '/pipl': {
-        target: 'https://api.pipl.ai',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/pipl/, '')
-      },
-      '/instantly': {
-        target: 'https://api.instantly.ai',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/instantly/, '')
       }
     }
   }
